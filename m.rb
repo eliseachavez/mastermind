@@ -27,10 +27,11 @@ class Game
   NUMBERS = ["1","2","3","4","5","6"] #shorthand for representing the colors
   def initialize
     @possible_codes = generate_all_possible_codes
-    p @possible_codes.size
-    @codemaker = computer
-    @codebreaker = computer
-    play
+    @codemaker = "computer"
+    @codebreaker = "computer or person"
+    @player = ''
+    @computer = ''
+    intro_and_setup
   end
 
   private
@@ -47,10 +48,26 @@ class Game
     permutation
   end
 
-  def play
-
+  def intro_and_setup
+    puts "Welcome to mastermind!"\
+    " Would you like to make the code, or break the code?"\
+    " Type 'codemaker' for the former and 'codebreaker' for the latter."
+    begin
+      answer = gets.chomp
+    rescue StandardError => e
+      puts "ERROR: #{e.inspect}"
+      retry
+    else
+      if answer == "codemaker" || answer == "codebreaker"
+        player = answer
+      else
+        puts "That is not a valid answer; let's start over."
+        puts
+        intro_and_setup
+      end
+    end
   end
 
-end
+end # end of class def
 
 game = Game.new
