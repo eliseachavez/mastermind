@@ -39,7 +39,8 @@ class Game
     @turn_data = {1=>nil,2=>nil,3=>nil,4=>nil, 5=>nil,6=>nil,7=>nil,8=>nil,9=>nil,10=>nil,11=>nil,12=>nil}
     @banned_colors = []
     @num_guesses = 0
-    @feedback_pins = []
+    @r_count = 0
+    @w_count = 0
     @turns = 0
     @over = false
     intro_and_setup
@@ -150,45 +151,49 @@ class Game
 
   def play
     choose
-    guess
-    grade_guess
+    until @over do
+      guess
+      grade_guess
+      archive_and_reset_guess
+    end
+  end
 
+  def archive_and_reset_guess
+    @guess.push(@r_count)
+    @guess.push(@w_count)
+    @turn_data[num_guesses] = @guess
+    @guess = []
+    @r_count = 0
+    @w_count = 0
   end
 
   def grade_guess
-    r_count = 0
-    w_count = 0
-    used_colors = []
-    @code.each_index do |index|
-      if @code[index] == @guess[index]
-        if used_colors.include?(@guess[index])
-          r_count += 1
-          w_count -= 1
-        else
-          r_count += 1
-          used_colors.push(@guess[index])
-        end
-      else
-        if @code.include?(@guess[index])
-          unless used_colors.include?(@guess[index])
-            w_count += 1
+    if @guess == @code
+      @over = true
+    else
+      used_colors = []
+      @code.each_index do |index|
+        if @code[index] == @guess[index]
+          if used_colors.include?(@guess[index])
+            @r_count += 1
+          else
+            @r_count += 1
             used_colors.push(@guess[index])
           end
         else
-          unless @banned_colors.include?(@guess[index])
-            @banned_colors.push(@guess[index])
+          if @code.include?(@guess[index])
+            unless used_colors.include?(@guess[index])
+              @w_count += 1
+              used_colors.push(@guess[index])
+            end
+          else
+            unless @banned_colors.include?(@guess[index])
+              @banned_colors.push(@guess[index])
+            end
           end
         end
       end
     end
-
-    r_count.times do
-      @feedback_pins.push('r')
-    end
-    w_count.times do
-      @feedback_pins.push('w')
-    end
-
     print_grade
   end
 
@@ -198,7 +203,7 @@ class Game
     "\nWhite means you got a color right. Repeats will not receive additional whites."\
     "\nRed means you got the color and order right."\
     "\nRed and White will be indicated by the characters r and w.\n"
-    @feedback_pins.each {|pin| print pin}
+    puts "\nThere were #{@r_count} red pins and #{@w_count} white pins.\n"
   end
 
   def choose
@@ -229,14 +234,7 @@ class Game
     if @num_guesses == 0
       first_guess
     else
-      if feedback_pins.include?('r') || feedback_pins.include?('w')
-          @turn_data[1] = @guess
-          # add r count and w count as well
-          @turn_data.push(@feedback_pins.count('r'))
-          @turn_data.push(@feedback_pins.count('w'))
-          p @turn_data
-      end
-
+      subsequent_guess
     end
     @num_guesses += 1
   end
@@ -254,6 +252,28 @@ class Game
     color2 = CODE_KEY[rand2]
     2.times { @guess.push(color1) }
     2.times { @guess.push(color2) }
+    @num_guesses += 1
+  end
+
+  def subsequent_guess
+    # remove any codes with banned colors
+    @banned_colors.each do |banned_color|
+      @possible_codes.each do |code|
+        if code.include?(banned_color)
+          @possible_codes.delete(code)
+        end
+      end
+    end
+
+
+    # if feedback_pins.include?('r') || feedback_pins.include?('w')
+    #   @turn_data[1] = @guess
+    #   # add r count and w count as well
+    #   @turn_data.push(@feedback_pins.count('r'))
+    #   @turn_data.push(@feedback_pins.count('w'))
+    #   p @turn_data
+    # end
+    num_guesses += 1
   end
 
 end # end of class def
