@@ -54,11 +54,11 @@ class Game
     else
       if answer == "codemaker" || answer == "codebreaker"
         if answer == "codemaker"
-          codemaker = "player"
-          codebreaker = "computer"
+          @codemaker = "player"
+          @codebreaker = "computer"
         else
-          codemaker = "computer"
-          codebreaker = "player"
+          @codemaker = "computer"
+          @codebreaker = "player"
         end
       else
         puts "That is not a valid answer; let's start over."
@@ -86,7 +86,7 @@ class Game
 
     puts " \nFor red, type r, orange is o, yellow is y, green is g, blue is b,\n"\
     "and p is purple.\n\nAny characters other than these will be rejected.\n\n"\
-    "The code is 4 colors. Type your code character (r,o,y,g,b,p) when prompted.\n\n"
+    "The code is a 4 character code. Type your code character (r,o,y,g,b,p).\n\n"
     until i == 0 do
       puts "color:"
       begin
