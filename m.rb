@@ -36,7 +36,7 @@ class Game
     @code = []
     @guess = []
     @locked_guess = []
-    @potential_colors_by_turn = {1=>nil,2=>nil,3=>nil,4=>nil, 5=>nil,6=>nil,7=>nil,8=>nil,9=>nil,10=>nil,11=>nil,12=>nil}
+    @turn_data = {1=>nil,2=>nil,3=>nil,4=>nil, 5=>nil,6=>nil,7=>nil,8=>nil,9=>nil,10=>nil,11=>nil,12=>nil}
     @banned_colors = []
     @num_guesses = 0
     @feedback_pins = []
@@ -156,29 +156,39 @@ class Game
   end
 
   def grade_guess
+    r_count = 0
+    w_count = 0
     used_colors = []
     @code.each_index do |index|
-      # look for exact matches first
       if @code[index] == @guess[index]
         if used_colors.include?(@guess[index])
-          # if the color is already used, we need to remove a white pin
-          @feedback_pins.push('r')
-          @feedback_pins.delete('w')
-        else # add red pin and add to used colors
-          @feedback_pins.push('r')
+          r_count += 1
+          w_count -= 1
+        else
+          r_count += 1
           used_colors.push(@guess[index])
         end
-      else # not an exact fit, but is this color elsewhere? don't give white pin twice for repeats though
+      else
         if @code.include?(@guess[index])
-          if used_colors.include?(@guess[index]) # the code has this color but we've already given it a white peg, don't do again
-
-          else
-            @feedback_pins.push('w')
+          unless used_colors.include?(@guess[index])
+            w_count += 1
             used_colors.push(@guess[index])
+          end
+        else
+          unless @banned_colors.include?(@guess[index])
+            @banned_colors.push(@guess[index])
           end
         end
       end
     end
+
+    r_count.times do
+      @feedback_pins.push('r')
+    end
+    w_count.times do
+      @feedback_pins.push('w')
+    end
+
     print_grade
   end
 
@@ -188,7 +198,7 @@ class Game
     "\nWhite means you got a color right. Repeats will not receive additional whites."\
     "\nRed means you got the color and order right."\
     "\nRed and White will be indicated by the characters r and w.\n"
-    @feedback_pins.each { |pin| print pin }
+    @feedback_pins.each {|pin| print pin}
   end
 
   def choose
@@ -220,11 +230,11 @@ class Game
       first_guess
     else
       if feedback_pins.include?('r') || feedback_pins.include?('w')
-          @potential_colors_by_turn[1] = @guess
+          @turn_data[1] = @guess
           # add r count and w count as well
-          @potential_colors_by_turn.push(@feedback_pins.count('r'))
-          @potential_colors_by_turn.push(@feedback_pins.count('w'))
-          p @potential_colors_by_turn
+          @turn_data.push(@feedback_pins.count('r'))
+          @turn_data.push(@feedback_pins.count('w'))
+          p @turn_data
       end
 
     end
