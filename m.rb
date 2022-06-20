@@ -161,7 +161,7 @@ class Game
   def archive_and_reset_guess
     @guess.push(@r_count)
     @guess.push(@w_count)
-    @turn_data[num_guesses] = @guess
+    @turn_data[@num_guesses] = @guess
     @guess = []
     @r_count = 0
     @w_count = 0
@@ -222,6 +222,7 @@ class Game
       player_guess
     end
     puts "\n#{@codebreaker}'s guess is #{@guess}\n"
+    @num_guesses += 1
   end
 
   def player_guess
@@ -236,7 +237,6 @@ class Game
     else
       subsequent_guess
     end
-    @num_guesses += 1
   end
 
   def first_guess
@@ -252,17 +252,19 @@ class Game
     color2 = CODE_KEY[rand2]
     2.times { @guess.push(color1) }
     2.times { @guess.push(color2) }
-    @num_guesses += 1
   end
 
   def subsequent_guess
     # remove any codes with banned colors
+    p "The size of possible codes before removal is #{@possible_codes.size}"
     @banned_colors.each do |banned_color|
       @possible_codes.each do |code|
         if code.include?(banned_color)
           @possible_codes.delete(code)
+
         end
       end
+      p "The size of possible codes now is #{@possible_codes.size}\n"
     end
 
 
@@ -273,7 +275,6 @@ class Game
     #   @turn_data.push(@feedback_pins.count('w'))
     #   p @turn_data
     # end
-    num_guesses += 1
   end
 
 end # end of class def
