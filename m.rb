@@ -24,7 +24,10 @@
 #       if no colors or positions are correct, return no grade pegs
 
 class Game
-  NUMBERS = ["1","2","3","4","5","6"] #shorthand for representing the colors
+  CODE_KEY = ["r","o","y","g","b","p"] #shorthand for representing the colors
+  @@p_score = 0
+  @@c_score = 0
+  @@rounds = 0
 
   def initialize
     @possible_codes = generate_all_possible_codes
@@ -32,6 +35,12 @@ class Game
     @codebreaker = ''
     @code = []
     @guess = []
+    @locked_guess = []
+    @potential_colors_by_turn = {1=>nil,2=>nil,3=>nil,4=>nil, 5=>nil,6=>nil,7=>nil,8=>nil,9=>nil,10=>nil,11=>nil,12=>nil}
+    @banned_colors = []
+    @num_guesses = 0
+    @feedback_pins = []
+    @turns = 0
     @over = false
     intro_and_setup
   end
@@ -40,7 +49,7 @@ class Game
 
   def generate_all_possible_codes
     permutation = []
-    NUMBERS.repeated_permutation(4) { |num| permutation.push(num) }
+    CODE_KEY.repeated_permutation(4) { |num| permutation.push(num) }
     permutation
   end
 
@@ -140,13 +149,54 @@ class Game
   end
 
   def play
-    # Let's say for now that play is codemaker and computer is codebreaker
+    choose
+    guess
+    grade_guess
+
+  end
+
+  def grade_guess
+    used_colors = []
+    @code.each_index do |index|
+      # look for exact matches first
+      if @code[index] == @guess[index]
+        if used_colors.include?(@guess[index])
+          # if the color is already used, we need to remove a white pin
+          @feedback_pins.push('r')
+          @feedback_pins.delete('w')
+        else # add red pin and add to used colors
+          @feedback_pins.push('r')
+          used_colors.push(@guess[index])
+        end
+      else # not an exact fit, but is this color elsewhere? don't give white pin twice for repeats though
+        if @code.include?(@guess[index])
+          if used_colors.include?(@guess[index]) # the code has this color but we've already given it a white peg, don't do again
+
+          else
+            @feedback_pins.push('w')
+            used_colors.push(@guess[index])
+          end
+        end
+      end
+    end
+    print_grade
+  end
+
+  def print_grade
+    # print the feedback pins
+    puts "\nHere's how your guess did."\
+    "\nWhite means you got a color right. Repeats will not receive additional whites."\
+    "\nRed means you got the color and order right."\
+    "\nRed and White will be indicated by the characters r and w.\n"
+    @feedback_pins.each { |pin| print pin }
+  end
+
+  def choose
     if @codemaker == 'computer'
       @code = generate_code
     else
       @code = choose_code
     end
-    guess
   end
 
   def guess
@@ -156,13 +206,44 @@ class Game
     else
       player_guess
     end
+    puts "\n#{@codebreaker}'s guess is #{@guess}\n"
   end
 
   def player_guess
     puts "\n\nThe computer has created a code and it is time for you to guess.\n"
     @guess = choose_guess
-    puts "reached end of player guess"
+  end
 
+  def computer_guess
+    # FIRST GUESS: pick 2 colors randomly and use the 1122 template
+    if @num_guesses == 0
+      @guess = first_guess
+    else
+      if feedback_pins.include?('r') || feedback_pins.include?('w')
+          @potential_colors_by_turn[1] = @guess
+          # add r count and w count as well
+          @potential_colors_by_turn.push(@feedback_pins.count('r'))
+          @potential_colors_by_turn.push(@feedback_pins.count('w'))
+          p @potential_colors_by_turn
+      end
+
+    end
+    @num_guesses += 1
+  end
+
+  def first_guess
+    rand1 = 0
+    rand2 = 0
+    until rand1 != rand2 do
+      rand1 = rand(5)
+      rand2 = rand(5)
+    end
+
+    color1 = CODE_KEY[rand1] # randomly choose an index
+    color2 = CODE_KEY[rand2]
+    guess = []
+    2.times { @guess.push(color1) }
+    2.times { @guess.push(color2) }
   end
 
 end # end of class def
