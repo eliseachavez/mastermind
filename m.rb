@@ -31,6 +31,8 @@ class Game
     @codemaker = ''
     @codebreaker = ''
     @code = []
+    @guess = []
+    @over = false
     intro_and_setup
   end
 
@@ -76,17 +78,19 @@ class Game
     @possible_codes[random_index]
   end
 
+  def choose_printout
+    puts " \nChoose your code. It is four characters long. \n"\
+    "\nFor red, type r; orange, type o; yellow, type y,"\
+    "\n green, type g; blue, type b; purple, type p\n"\
+    "Any characters other than these will be rejected.\n\n"\
+  end
+
   def choose_code
     alphabet = "roygbp"
     code_char = nil
     i = 4
-    puts "++++++++++++++++++++++++++++++++++++++++++++++++++++++"\
-    "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"\
-    "\nAlright codemaker: choose your code."
 
-    puts " \nFor red, type r, orange is o, yellow is y, green is g, blue is b,\n"\
-    "and p is purple.\n\nAny characters other than these will be rejected.\n\n"\
-    "The code is a 4 character code. Type your code character (r,o,y,g,b,p).\n\n"
+    choose_printout
     until i == 0 do
       puts "color:"
       begin
@@ -99,12 +103,39 @@ class Game
         if alphabet.include?(code_char)
           i -= 1
           @code.push(code_char)
-        else # need to retry
+        else
           puts "That was an inccorect character."\
           "Type your code character (r,o,y,g,b,p) when prompted."
         end
-      end # exception handling block
-    end # until loop
+      end
+    end
+    @code
+  end
+
+  def choose_guess
+    alphabet = "roygbp"
+    code_char = nil
+    i = 4
+
+    choose_printout
+    until i == 0 do
+      puts "color:"
+      begin
+        code_char = gets.chomp
+      rescue StandardError=>each
+        puts "Error: #{e.inspect}"
+        retry
+      else
+        code_char = code_char.downcase
+        if alphabet.include?(code_char)
+          i -= 1
+          @code.push(code_char)
+        else
+          puts "That was an inccorect character."\
+          "Type your code character (r,o,y,g,b,p) when prompted."
+        end
+      end
+    end
     @code
   end
 
@@ -115,7 +146,23 @@ class Game
     else
       @code = choose_code
     end
-    p "TODO"
+    guess
+  end
+
+  def guess
+    # Make guesses until
+    if @codebreaker == "computer"
+      computer_guess
+    else
+      player_guess
+    end
+  end
+
+  def player_guess
+    puts "\n\nThe computer has created a code and it is time for you to guess.\n"
+    @guess = choose_guess
+    puts "reached end of player guess"
+
   end
 
 end # end of class def
