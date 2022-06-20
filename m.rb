@@ -217,7 +217,7 @@ class Game
   def computer_guess
     # FIRST GUESS: pick 2 colors randomly and use the 1122 template
     if @num_guesses == 0
-      @guess = first_guess
+      first_guess
     else
       if feedback_pins.include?('r') || feedback_pins.include?('w')
           @potential_colors_by_turn[1] = @guess
@@ -234,6 +234,7 @@ class Game
   def first_guess
     rand1 = 0
     rand2 = 0
+
     until rand1 != rand2 do
       rand1 = rand(5)
       rand2 = rand(5)
@@ -241,7 +242,6 @@ class Game
 
     color1 = CODE_KEY[rand1] # randomly choose an index
     color2 = CODE_KEY[rand2]
-    guess = []
     2.times { @guess.push(color1) }
     2.times { @guess.push(color2) }
   end
