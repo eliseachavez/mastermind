@@ -25,33 +25,27 @@
 
 class Game
   NUMBERS = ["1","2","3","4","5","6"] #shorthand for representing the colors
+
   def initialize
     @possible_codes = generate_all_possible_codes
-    @codemaker = "computer"
-    @codebreaker = "computer or person"
-    @player = ''
-    @computer = ''
+    @codemaker = ''
+    @codebreaker = ''
+    @code = []
     intro_and_setup
   end
 
   private
 
   def generate_all_possible_codes
-    # 4 peg code made from 5 colors, repeats allowed
-    # if repeats weren't allowed, I chould choose .permutation method
-    # instead of .permutation method
-    # Should generate 6^4 codes, or 1,296
     permutation = []
-    NUMBERS.repeated_permutation(4) do |num|
-      permutation.push(num)
-    end
+    NUMBERS.repeated_permutation(4) { |num| permutation.push(num) }
     permutation
   end
 
   def intro_and_setup
-    puts "Welcome to mastermind!"\
-    " Would you like to make the code, or break the code?"\
-    " Type 'codemaker' for the former and 'codebreaker' for the latter."
+    puts "Welcome to mastermind!\n"\
+    "Would you like to make the code, or break the code?\n"\
+    "Type 'codemaker' for the former and 'codebreaker' for the latter.\n"
     begin
       answer = gets.chomp
     rescue StandardError => e
@@ -59,13 +53,53 @@ class Game
       retry
     else
       if answer == "codemaker" || answer == "codebreaker"
-        player = answer
+        if answer == "codemaker"
+          codemaker = "player"
+          codebreaker = "computer"
+        else
+          codemaker = "computer"
+          codebreaker = "player"
+        end
       else
         puts "That is not a valid answer; let's start over."
         puts
         intro_and_setup
       end
     end
+    play
+  end
+
+  def generate_code
+    #pick a code from @all_possible_codes at random
+  end
+
+  def choose_code
+    alphabet = "roygbp"
+    code = nil
+    i = 0
+    puts "++++++++++++++++++++++++++++++++++++++++++++++++++++++"\
+    "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"\
+    "\nAlright codemaker: choose your code."
+
+      puts " \nFor red, type r, orange is o, yellow is y, green is g, blue is b,\n"\
+      "and p is purple.\n\nAny characters other than these will be rejected.\n\n"\
+      "The code is 4 colors. Type your code character (r,o,y,g,b,p) when prompted.\n\n"
+
+      code_char = gets.chomp
+      code_char = code_char.downcase
+      if alphabet.include?(code_char)
+        puts "this is correct!"
+      end
+  end
+
+  def play
+    # Let's say for now that play is codemaker and computer is codebreaker
+    if @codemaker == 'computer'
+      @code = generate_code
+    else
+      @code = choose_code
+    end
+    p "Code is #{@code} and size is #{@code.size}"
   end
 
 end # end of class def
