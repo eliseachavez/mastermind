@@ -73,7 +73,7 @@ class Game
     # pick a code from @all_possible_codes at random
     # there are 1296 codes, so we may 1296-1 or 1295 the max number
     random_index = rand(1295)
-
+    @possible_codes[random_index]
   end
 
   def choose_code
