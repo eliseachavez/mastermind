@@ -136,7 +136,7 @@ class Game
         end
       end
     end
-    @code
+    @guess
   end
 
   def play
