@@ -70,26 +70,42 @@ class Game
   end
 
   def generate_code
-    #pick a code from @all_possible_codes at random
+    # pick a code from @all_possible_codes at random
+    # there are 1296 codes, so we may 1296-1 or 1295 the max number
+    random_index = rand(1295)
+
   end
 
   def choose_code
     alphabet = "roygbp"
-    code = nil
-    i = 0
+    code_char = nil
+    i = 4
     puts "++++++++++++++++++++++++++++++++++++++++++++++++++++++"\
     "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"\
     "\nAlright codemaker: choose your code."
 
-      puts " \nFor red, type r, orange is o, yellow is y, green is g, blue is b,\n"\
-      "and p is purple.\n\nAny characters other than these will be rejected.\n\n"\
-      "The code is 4 colors. Type your code character (r,o,y,g,b,p) when prompted.\n\n"
-
-      code_char = gets.chomp
-      code_char = code_char.downcase
-      if alphabet.include?(code_char)
-        puts "this is correct!"
-      end
+    puts " \nFor red, type r, orange is o, yellow is y, green is g, blue is b,\n"\
+    "and p is purple.\n\nAny characters other than these will be rejected.\n\n"\
+    "The code is 4 colors. Type your code character (r,o,y,g,b,p) when prompted.\n\n"
+    until i == 0 do
+      puts "color:"
+      begin
+        code_char = gets.chomp
+      rescue StandardError=>each
+        puts "Error: #{e.inspect}"
+        retry
+      else
+        code_char = code_char.downcase
+        if alphabet.include?(code_char)
+          i -= 1
+          @code.push(code_char)
+        else # need to retry
+          puts "That was an inccorect character."\
+          "Type your code character (r,o,y,g,b,p) when prompted."
+        end
+      end # exception handling block
+    end # until loop
+    @code
   end
 
   def play
@@ -99,7 +115,7 @@ class Game
     else
       @code = choose_code
     end
-    p "Code is #{@code} and size is #{@code.size}"
+    p "TODO"
   end
 
 end # end of class def
