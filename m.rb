@@ -129,7 +129,7 @@ class Game
         code_char = code_char.downcase
         if alphabet.include?(code_char)
           i -= 1
-          @code.push(code_char)
+          @guess.push(code_char)
         else
           puts "That was an inccorect character."\
           "Type your code character (r,o,y,g,b,p) when prompted."
