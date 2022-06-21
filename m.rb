@@ -207,7 +207,7 @@ class Game
     "\nWhite means you got a color right. Repeats will not receive additional whites."\
     "\nRed means you got the color and order right."\
     "\nRed and White will be indicated by the characters r and w.\n"
-    puts "\nThere were #{@r_count} red pins and #{@w_count} white pins.\n"
+    puts "\nThere were #{@r_count} red pins and #{@w_count} white pins.\n\n"
   end
 
   def choose
@@ -321,11 +321,10 @@ class Game
 
     # grab code that has highest number of colors that are locked colors
     @possible_codes.each_index do |index|
-      code = @possible_code[index]
+      code = @possible_codes[index]
       match_count = 0
-      code_with_max_match_count
-      @potential_colors.each do |locked_color|
-        if code.include?(locked_color)
+      @potential_colors.each do |color|
+        if code.include?(color)
           match_count += 1
         end
       end
@@ -355,6 +354,18 @@ class Game
     size = @possible_codes.size - 1
     random_index = rand(size)
     @guess = @possible_codes[random_index]
+    includes_color = false
+    if @potential_colors.size > 0
+      @potential_colors.each do |color|
+        if @guess.include?(color)
+          includes_color = true
+        end
+      end
+      if !includes_color
+        random_guess
+      end
+    end
+
   end
 
   def generate_potential_colors
