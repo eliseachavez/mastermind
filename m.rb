@@ -312,6 +312,7 @@ class Game
 
   def new_guess_if_no_pins
     # remove any banned colors (already happened
+    random_guess
   end
 
   def new_guess_if_red_pin
