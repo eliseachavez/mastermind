@@ -353,7 +353,8 @@ class Game
 
   def random_guess
     size = @possible_codes.size - 1
-    @guess = @possible_codes.rand(size)
+    random_index = rand(size)
+    @guess = @possible_codes[random_index]
   end
 
   def generate_potential_colors
