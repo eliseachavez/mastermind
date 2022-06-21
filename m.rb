@@ -112,7 +112,7 @@ class Game
         retry
       else
         code_char = code_char.downcase
-        if alphabet.include?(code_char)
+        if CODE_KEY.include?(code_char)
           i -= 1
           @code.push(code_char)
         else
@@ -281,6 +281,13 @@ class Game
         end
       end
     p "The size of possible codes now is #{@possible_codes.size}\n"
+    end
+    @possible_codes.each do |code|
+      @banned_colors.each do |banned_color|
+        if code.include?(banned_color)
+          puts "ERROR, CODES WITH BANNED COLORS WERE NOT REMOVED"
+        end
+      end
     end
   end
 
