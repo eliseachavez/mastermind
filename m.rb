@@ -37,6 +37,7 @@ class Game
     @guess = []
     @locked_guess = []
     @turn_data = {1=>nil,2=>nil,3=>nil,4=>nil, 5=>nil,6=>nil,7=>nil,8=>nil,9=>nil,10=>nil,11=>nil,12=>nil}
+    @potential_colors = []
     @banned_colors = []
     @num_guesses = 0
     @r_count = 0
@@ -255,26 +256,50 @@ class Game
   end
 
   def subsequent_guess
-    # remove any codes with banned colors
-    p "The size of possible codes before removal is #{@possible_codes.size}"
+    remove_codes
+
+    if @turn_data[@num_guesses][4] == 0 && @turn_data[@num_guesses][5] == 0
+      new_guess_if_no_pins
+    elsif @turn_data[@num_guesses][4] > 0
+      new_guess_if_red_pin
+    elsif @turn_data[@num_guesses][5] > 0
+      new_guess_if_only_white_pins
+    end
+
+  end
+
+  def remove_codes_with_banned_colors
+    p "The size of possible codes before removal is #{@possible_codes.size}\n"
     @banned_colors.each do |banned_color|
       @possible_codes.each do |code|
         if code.include?(banned_color)
           @possible_codes.delete(code)
-
         end
       end
-      p "The size of possible codes now is #{@possible_codes.size}\n"
+    p "The size of possible codes now is #{@possible_codes.size}\n"
     end
+  end
 
+  def remove_codes_with_rejected_positions
+    # loop through possible codes and delete any code that has that color at index position
+    p "The size of possible codes before removal is #{@possible_codes.size}\n"
+    @possible_codes.each_index do |index|
+      color_at_index = @turn_data[@num_guesses][index]
+      if @possible_codes[index] == color_at_index
+        @possible_codes.delete(possible_codes[index])
+      end
+    end
+    p "The size of possible codes now is #{@possible_codes.size}\n"
+  end
 
-    # if feedback_pins.include?('r') || feedback_pins.include?('w')
-    #   @turn_data[1] = @guess
-    #   # add r count and w count as well
-    #   @turn_data.push(@feedback_pins.count('r'))
-    #   @turn_data.push(@feedback_pins.count('w'))
-    #   p @turn_data
-    # end
+  def remove_code_last_guessed
+    @possible_codes.delete(@guess)
+  end
+
+  def remove_codes
+    remove_code_last_guessed
+    remove_codes_with_banned_colors
+    remove_codes_with_rejected_positions
   end
 
 end # end of class def
