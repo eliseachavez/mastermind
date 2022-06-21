@@ -35,6 +35,7 @@ class Game
     @codebreaker = ''
     @code = []
     @guess = []
+    @last_guess = []
     @locked_guess = []
     @turn_data = {1=>nil,2=>nil,3=>nil,4=>nil, 5=>nil,6=>nil,7=>nil,8=>nil,9=>nil,10=>nil,11=>nil,12=>nil}
     @potential_colors = []
@@ -160,10 +161,11 @@ class Game
   end
 
   def archive_and_reset_guess
+    @last_guess = @guess.clone
     @guess.push(@r_count)
     @guess.push(@w_count)
-    @turn_data[@num_guesses] = @guess
-    @guess = []
+    @turn_data[@num_guesses] = @guess.clone
+    @guess.clear
     @r_count = 0
     @w_count = 0
   end
@@ -177,6 +179,7 @@ class Game
         if @code[index] == @guess[index]
           if used_colors.include?(@guess[index])
             @r_count += 1
+            @w_count -= 1
           else
             @r_count += 1
             used_colors.push(@guess[index])
@@ -257,13 +260,13 @@ class Game
 
   def subsequent_guess
     remove_codes
-
+    last_guess = @turn_data[@num_guesses]
     # guesses based on locking colors and comparing codes, not removal
-    if @turn_data[@num_guesses][4] == 0 && @turn_data[@num_guesses][5] == 0
+    if last_guess[4] == 0 && last_guess[5] == 0
       new_guess_if_no_pins
-    elsif @turn_data[@num_guesses][4] > 0
+    elsif last_guess[4] > 0
       new_guess_if_red_pin
-    elsif @turn_data[@num_guesses][5] > 0
+    elsif last_guess[5] > 0
       new_guess_if_only_white_pins
     end
 
@@ -282,19 +285,23 @@ class Game
   end
 
   def remove_codes_with_rejected_positions
-    # loop through possible codes and delete any code that has that color at index position
     p "The size of possible codes before removal is #{@possible_codes.size}\n"
-    @possible_codes.each_index do |index|
-      color_at_index = @turn_data[@num_guesses][index]
-      if @possible_codes[index] == color_at_index
-        @possible_codes.delete(possible_codes[index])
+    last_guess = @turn_data[@num_guesses]
+
+    last_guess.each_index do |index|
+      color_at_position = last_guess[index] # 'r y o p, color_at position is 'r' if index is 0, where position is index, 0-4
+      @possible_codes.each do |code|
+        if code[index] == color_at_position
+          # remove this
+          @possible_codes.delete(code)
+        end
       end
     end
     p "The size of possible codes now is #{@possible_codes.size}\n"
   end
 
   def remove_code_last_guessed
-    @possible_codes.delete(@guess)
+    @possible_codes.delete(@turn_data[@num_guesses])
   end
 
   def remove_codes
@@ -309,23 +316,14 @@ class Game
 
   def new_guess_if_red_pin
     # add all colors to locked colors, unless on banned colors list
-    @turn_data[@num_guesses].each_index do |code|
-      # code would be like [r','g','b','o',1,2]
-      i = 0
-      4.times do
-        unless @banned_colors.include?(code[i])
-          @locked_colors.push(code[i])
-          i += 1
-        end
-      end
-    end
+    generate_potential_colors
 
     # grab code that has highest number of colors that are locked colors
     @possible_codes.each_index do |index|
       code = @possible_code[index]
       match_count = 0
       code_with_max_match_count
-      @locked_colors.each do |locked_color|
+      @potential_colors.each do |locked_color|
         if code.include?(locked_color)
           match_count += 1
         end
@@ -343,10 +341,33 @@ class Game
 
     end
 
-
   end
 
   def new_guess_if_only_white_pins
+    # nothing is in right position. need to rearrange
+    generate_potential_colors
+    random_guess
+    # remove anything that has similar positions
+  end
+
+  def random_guess
+    size = @possible_codes.size - 1
+    @guess = @possible_codes.rand(size)
+  end
+
+  def generate_potential_colors
+    @last_guess.each do |one_guess_color|
+      # code would be like [r','g','b','o',1,2]
+      i = 0
+      4.times do
+        unless @banned_colors.include?(one_guess_color)
+          unless @potential_colors.include?(one_guess_color)
+            @potential_colors.push(one_guess_color)
+            i += 1
+          end
+        end
+      end
+    end
   end
 
 end # end of class def
