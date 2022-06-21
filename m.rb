@@ -258,6 +258,7 @@ class Game
   def subsequent_guess
     remove_codes
 
+    # guesses based on locking colors and comparing codes, not removal
     if @turn_data[@num_guesses][4] == 0 && @turn_data[@num_guesses][5] == 0
       new_guess_if_no_pins
     elsif @turn_data[@num_guesses][4] > 0
@@ -300,6 +301,52 @@ class Game
     remove_code_last_guessed
     remove_codes_with_banned_colors
     remove_codes_with_rejected_positions
+  end
+
+  def new_guess_if_no_pins
+    # remove any banned colors (already happened
+  end
+
+  def new_guess_if_red_pin
+    # add all colors to locked colors, unless on banned colors list
+    @turn_data[@num_guesses].each_index do |code|
+      # code would be like [r','g','b','o',1,2]
+      i = 0
+      4.times do
+        unless @banned_colors.include?(code[i])
+          @locked_colors.push(code[i])
+          i += 1
+        end
+      end
+    end
+
+    # grab code that has highest number of colors that are locked colors
+    @possible_codes.each_index do |index|
+      code = @possible_code[index]
+      match_count = 0
+      code_with_max_match_count
+      @locked_colors.each do |locked_color|
+        if code.include?(locked_color)
+          match_count += 1
+        end
+      end
+
+      if match_count == 4
+        @guess = code
+      elsif match_count == 3
+        @guess = code
+      elsif match_count == 2
+        @guess = code
+      else
+        @guess = code
+      end
+
+    end
+
+
+  end
+
+  def new_guess_if_only_white_pins
   end
 
 end # end of class def
