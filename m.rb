@@ -360,9 +360,6 @@ class Game
   end
 
   def new_guess_if_red_pin
-    # add all colors to locked colors, unless on banned colors list
-    generate_potential_colors
-
     # grab code that has highest number of colors that are locked colors
     @possible_codes.each_index do |index|
       code = @possible_codes[index]
@@ -389,7 +386,6 @@ class Game
 
   def new_guess_if_only_white_pins
     # nothing is in right position. need to rearrange
-    generate_potential_colors
     random_guess
     # remove anything that has similar positions
   end
@@ -408,24 +404,6 @@ class Game
       if !includes_color
         random_guess
       end
-    end
-
-  end
-
-  def generate_potential_colors
-    @last_guess.each do |color|
-      # code would be like [r','g','b','o',1,2]
-      i = 0
-      4.times do
-        unless @banned_colors.include?(color)
-          unless @potential_colors.include?(color)
-            @potential_colors.push(color)
-            i += 1
-          end
-        end
-
-      end
-
     end
 
   end
