@@ -25,7 +25,7 @@ def look_for_matches_at_position
       $r_count += 1
       $w_count -= 1 # because it's going to be counted again later
       $perfect_matches.push($guess[i])
-      $potential_colors.push($guess[i])
+      $potential_colors.push($guess[i]) # unless already in there
     end
   end
 end

@@ -45,9 +45,10 @@ class Game
     @w_count = 0
     @turns = 0
     @over = false
-    intro_and_setup
     @match_count = {r:0,o:0,y:0,g:0,b:0,p:0}
     @code_color_count = {r:0,o:0,y:0,g:0,b:0,p:0}
+
+    intro_and_setup
   end
 
   private
@@ -175,13 +176,13 @@ class Game
   end
 
   def clear_match_count
-    @match_count.each do |key, value|
+    @match_count.each_value do |value|
       value = 0
     end
   end
 
   def clear_code_color_count
-    @color_count.each do |key, value|
+    @code_color_count.each_value do |value|
       value = 0
     end
   end
@@ -244,13 +245,15 @@ class Game
   end
 
   def generate_code_color_count
+
     CODE_KEY.each do |color|
       @code.each do |code_color|
-        if code_color = color
-          @code_color_count[color] += 1
+        if code_color == color
+          @code_color_count[color.to_sym] += 1
         end
       end
     end
+
   end
 
   def print_grade
