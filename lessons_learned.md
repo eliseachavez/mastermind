@@ -7,3 +7,6 @@
 * When trying to copy an array's contents to a new array, any change I made to the original array would change the array copy as well, because it was a shallow copy!
 * = assignment and even iterating and pushing to the new array with .push would still create a shallow copy
 * Only way to make a deep copy is to use .clone
+##### Delete Codes From Array
+* For whatever reason, still haven't found out why, #delete doesn't work on the
+* Array of possible codes. Strangely, it will only delete some codes that meet the condition - for unknown reasons. When the same actions are done manually, they work perfectly.
