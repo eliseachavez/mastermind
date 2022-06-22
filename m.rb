@@ -48,7 +48,6 @@ class Game
     intro_and_setup
     @match_count = {r:0,o:0,y:0,g:0,b:0,p:0}
     @code_color_count = {r:0,o:0,y:0,g:0,b:0,p:0}
-    @guess_color_count = {r:0,o:0,y:0,g:0,b:0,p:0}
   end
 
   private
@@ -173,7 +172,6 @@ class Game
     @w_count = 0
     clear_match_count
     clear_code_color_count
-    clear_guess_color_count
   end
 
   def clear_match_count
@@ -182,7 +180,7 @@ class Game
     end
   end
 
-  def clear_color_count
+  def clear_code_color_count
     @color_count.each do |key, value|
       value = 0
     end
@@ -221,22 +219,14 @@ class Game
 
   def look_for_colors_at_inexact_position
     generate_code_color_count
-    generate_guess_color_count
-    #psuedocode:
-    # if # of exact matches of this color == # of times this color found in code
-    #   then we don't need to add a white pin
-    # else if # number of time this color is in the code > # of exact matches of color (including 0 times!)
-    #   then we add a white pin
-    #   also add to potential colors IF NOT ALREADY THERE
-    # else # of exact matches of this color > # of times color found in this code
-    #   then error message, there can't be more matches of this color then there are instances of it
+
     @guess.each do |color|
-      if @match_count[color] == @code_color_count[color]
+      if @match_count[color] == @code_color_count[color] # num of exact matches of this color is equal to num of times color found in code
         # we don't need to add a white pin, leave it
-      elsif @code_color_count[color] > @match_count[color]
+      elsif @code_color_count[color] > @match_count[color] # num of times color found in the code is more than num of exact matches, so we need a white pin
         @w_count += 1
         add_potential_color(color)
-      elsif @match_count[color] > @code_color_count[color]
+      elsif @match_count[color] > @code_color_count[color] # somehow there are more exact matches of this color than there is a number of that color in the code
         puts "Error, should not be able to have more exact matches than there are numbers of that color in the code"
       else
         puts "Error, not sure how we got to this branch"
@@ -246,12 +236,15 @@ class Game
   end
 
   def generate_count_of_exact_matches_by_color
+    @code.each_index do |i|
+      if @guess[i] == @code[i]
+        @match_count[@code[i].to_sym] += 1
+      end
+    end
   end
 
   def generate_code_color_count
-  end
 
-  def generate_guess_color_count
   end
 
   def print_grade
