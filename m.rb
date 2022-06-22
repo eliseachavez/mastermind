@@ -244,7 +244,13 @@ class Game
   end
 
   def generate_code_color_count
-
+    CODE_KEY.each do |color|
+      @code.each do |code_color|
+        if code_color = color
+          @code_color_count[color] += 1
+        end
+      end
+    end
   end
 
   def print_grade
