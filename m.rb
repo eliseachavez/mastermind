@@ -273,18 +273,8 @@ class Game
   end
 
   def remove_codes_with_banned_colors
-    p "The size of possible codes before removal is #{@possible_codes.size}\n"
-
     @banned_colors.each do |color|
       @possible_codes.reject! { |code| code.include?(color) }
-    end
-
-    @possible_codes.each do |code|
-      @banned_colors.each do |banned_color|
-        if code.include?(banned_color)
-          puts "error, code with banned colors were not removed"
-        end
-      end
     end
   end
 
@@ -370,18 +360,21 @@ class Game
   end
 
   def generate_potential_colors
-    @last_guess.each do |one_guess_color|
+    @last_guess.each do |color|
       # code would be like [r','g','b','o',1,2]
       i = 0
       4.times do
-        unless @banned_colors.include?(one_guess_color)
-          unless @potential_colors.include?(one_guess_color)
-            @potential_colors.push(one_guess_color)
+        unless @banned_colors.include?(color)
+          unless @potential_colors.include?(color)
+            @potential_colors.push(color)
             i += 1
           end
         end
+
       end
+
     end
+
   end
 
 end # end of class def
