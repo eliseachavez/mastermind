@@ -47,6 +47,7 @@ class Game
     @over = false
     @match_count = {r:0,o:0,y:0,g:0,b:0,p:0}
     @code_color_count = {r:0,o:0,y:0,g:0,b:0,p:0}
+    @banned_positions = {r:[],o:[],y:[],g:[],b:[],p:[]}
 
     intro_and_setup
   end
@@ -164,6 +165,7 @@ class Game
   end
 
   def archive_and_reset_guess
+    @last_guess.clear
     @last_guess = @guess.clone
     @guess.push(@r_count)
     @guess.push(@w_count)
@@ -182,7 +184,7 @@ class Game
 
   def clear_code_color_count
     @code_color_count.clear
-    @match_count = {r:0,o:0,y:0,g:0,b:0,p:0}
+    @code_color_count = {r:0,o:0,y:0,g:0,b:0,p:0}
   end
 
   def grade_guess
@@ -211,9 +213,10 @@ class Game
   end
 
   def add_potential_color(color)
-    unless @potential_colors.include?(color)
-      @potential_colors.push(color)
-    end
+    # unless @potential_colors.include?(color)
+    #   @potential_colors.push(color)
+    # end
+    @potential_colors.push(color)
   end
 
   def look_for_colors_at_inexact_position
@@ -313,35 +316,77 @@ class Game
 
   def subsequent_guess
     remove_codes
-    last_guess = @turn_data[@num_guesses]
-    # guesses based on locking colors and comparing codes, not removal
-    if last_guess[4] == 0 && last_guess[5] == 0
+
+    if no_pins?
       new_guess_if_no_pins
-    elsif last_guess[4] > 0
+    elsif num_red_pins > 0
       new_guess_if_red_pin
-    elsif last_guess[5] > 0
+    elsif num_white_pins > 0
       new_guess_if_only_white_pins
     end
+  end
 
+  def no_pins?
+    num_red_pins == 0 && num_white_pins == 0
+  end
+
+  def num_red_pins
+    last_guess = @turn_data[@num_guesses]
+    last_guess[4]
+  end
+
+  def num_white_pins
+    last_guess = @turn_data[@num_guesses]
+    last_guess[5]
   end
 
   def remove_codes_with_banned_colors
+    determine_banned_colors
     @banned_colors.each do |color|
       @possible_codes.reject! { |code| code.include?(color) }
     end
   end
 
   def remove_codes_with_rejected_positions
-    p "The size of possible codes before removal is #{@possible_codes.size}\n"
-    last_guess = @turn_data[@num_guesses]
+    if num_white_pins == 4
+      generate_banned_positions
+      # now remove
 
-    last_guess.each_index do |index|
-      color_at_position = last_guess[index] # 'r y o p, color_at position is 'r' if index is 0, where position is index, 0-4
-      @possible_codes.each do |code|
-        @possible_codes.reject! { |code| code[index] == color_at_position}
+      @banned_positions.each do |color_char, array_of_positions| # :p, [0,3]
+        @possible_codes.each do |code| # ['r','g','b','y']
+          @last_guess.each_index do |index| # 0, last guess ['p','y','g','b']
+            last_guess_color_char = @last_guess[i] # p
+            @possible_codes.reject! { last_guess_color_char == color_char.to_s && indexes_match }
+              # if p == :p && [] == 0
+            end
+          end
+        end
       end
+
+    elsif num_white_pins < 4 && num_white_pins > 0 && num_red_pins == 0
+
     end
-    p "The size of possible codes now is #{@possible_codes.size}\n"
+    # p "The size of possible codes before removal is #{@possible_codes.size}\n"
+    # last_guess = @turn_data[@num_guesses]
+
+    # last_guess.each_index do |index|
+    #   color_at_position = last_guess[index] # 'r y o p, color_at position is 'r' if index is 0, where position is index, 0-4
+    #   @possible_codes.each do |code|
+    #     @possible_codes.reject! { |code| code[index] == color_at_position}
+    #   end
+    # end
+    # p "The size of possible codes now is #{@possible_codes.size}\n"
+  end
+
+  def generate_banned_positions
+    @last_guess.each_index do |index|
+      color_char = @last_guess[index]
+      @banned_positions[color_char.to_sym].push(index)
+    end
+  end
+
+  def indexes_match(array_of_positions,index_of_guess_code)
+    array_of_positions.any?(index_of_guess_code)
   end
 
   def remove_code_last_guessed
@@ -352,6 +397,19 @@ class Game
     remove_code_last_guessed
     remove_codes_with_banned_colors
     remove_codes_with_rejected_positions
+  end
+
+  def determine_banned_color_positions
+  end
+
+  def determine_banned_colors
+    if no_pins?
+      @last_guess.each do |color|
+        unless @banned_colors.include?(color)
+          @banned_colors.push(color)
+        end
+      end
+    end
   end
 
   def new_guess_if_no_pins
