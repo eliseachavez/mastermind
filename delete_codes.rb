@@ -6,12 +6,8 @@ banned_colors = ['r']
 pp possible_codes
 
 # delete code with banned colors
-possible_codes.each do |code|
-  banned_colors.each do |color|
-    if code.include?(color)
-      possible_codes.delete(code)
-    end
-  end
+banned_colors.each do |color|
+  possible_codes.reject! { |code| code.include?(color) }
 end
 
 # check if codes with banned colors removed

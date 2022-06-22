@@ -275,26 +275,14 @@ class Game
   def remove_codes_with_banned_colors
     p "The size of possible codes before removal is #{@possible_codes.size}\n"
 
-    @possible_codes.each do |code|
-      @banned_colors.each do |color|
-        if code.include?(color)
-          @possible_codes.delete(code)
-        end
-      end
+    @banned_colors.each do |color|
+      @possible_codes.reject! { |code| code.include?(color) }
     end
 
-    # @banned_colors.each do |banned_color|
-    #   @possible_codes.each do |code|
-    #     if code.include?(banned_color)
-    #       @possible_codes.delete(code)
-    #     end
-    #   end
-    # p "The size of possible codes now is #{@possible_codes.size}\n"
-    #end
     @possible_codes.each do |code|
       @banned_colors.each do |banned_color|
         if code.include?(banned_color)
-          puts "ERROR, CODES WITH BANNED COLORS WERE NOT REMOVED"
+          puts "error, code with banned colors were not removed"
         end
       end
     end
