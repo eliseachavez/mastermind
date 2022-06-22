@@ -295,10 +295,7 @@ class Game
     last_guess.each_index do |index|
       color_at_position = last_guess[index] # 'r y o p, color_at position is 'r' if index is 0, where position is index, 0-4
       @possible_codes.each do |code|
-        if code[index] == color_at_position
-          # remove this
-          @possible_codes.delete(code)
-        end
+        @possible_codes.reject! { |code| code[index] == color_at_position}
       end
     end
     p "The size of possible codes now is #{@possible_codes.size}\n"
