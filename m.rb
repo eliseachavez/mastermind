@@ -46,6 +46,9 @@ class Game
     @turns = 0
     @over = false
     intro_and_setup
+    @match_count = {r:0,o:0,y:0,g:0,b:0,p:0}
+    @code_color_count = {r:0,o:0,y:0,g:0,b:0,p:0}
+    @guess_color_count = {r:0,o:0,y:0,g:0,b:0,p:0}
   end
 
   private
@@ -168,37 +171,87 @@ class Game
     @guess.clear
     @r_count = 0
     @w_count = 0
+    clear_match_count
+    clear_code_color_count
+    clear_guess_color_count
+  end
+
+  def clear_match_count
+    @match_count.each do |key, value|
+      value = 0
+    end
+  end
+
+  def clear_color_count
+    @color_count.each do |key, value|
+      value = 0
+    end
   end
 
   def grade_guess
     if @guess == @code
       @over = true
+      puts "You won!"
     else
-      used_colors = []
-      @code.each_index do |index|
-        if @code[index] == @guess[index]
-          if used_colors.include?(@guess[index])
-            @r_count += 1
-            @w_count -= 1
-          else
-            @r_count += 1
-            used_colors.push(@guess[index])
-          end
-        else
-          if @code.include?(@guess[index])
-            unless used_colors.include?(@guess[index])
-              @w_count += 1
-              used_colors.push(@guess[index])
-            end
-          else
-            unless @banned_colors.include?(@guess[index])
-              @banned_colors.push(@guess[index])
-            end
-          end
-        end
+      look_for_colors_at_exact_position
+      look_for_colors_at_inexact_position
+      print_grade
+    end
+  end
+
+  def look_for_colors_at_exact_position
+    @code.each_index do |i|
+      if @code[i] == @guess[i]
+        @r_count += 1
+        increment_count_of_exact_color_matches(@guess[i])
+        add_potential_color(@guess[i])
       end
     end
-    print_grade
+  end
+
+  def increment_count_of_exact_color_matches(color)
+    @match_count[color.to_sym] += 1
+  end
+
+  def add_potential_color(color)
+    unless @potential_colors.include?(color)
+      @potential_colors.push(color)
+    end
+  end
+
+  def look_for_colors_at_inexact_position
+    generate_code_color_count
+    generate_guess_color_count
+    #psuedocode:
+    # if # of exact matches of this color == # of times this color found in code
+    #   then we don't need to add a white pin
+    # else if # number of time this color is in the code > # of exact matches of color (including 0 times!)
+    #   then we add a white pin
+    #   also add to potential colors IF NOT ALREADY THERE
+    # else # of exact matches of this color > # of times color found in this code
+    #   then error message, there can't be more matches of this color then there are instances of it
+    @guess.each do |color|
+      if @match_count[color] == @code_color_count[color]
+        # we don't need to add a white pin, leave it
+      elsif @code_color_count[color] > @match_count[color]
+        @w_count += 1
+        add_potential_color(color)
+      elsif @match_count[color] > @code_color_count[color]
+        puts "Error, should not be able to have more exact matches than there are numbers of that color in the code"
+      else
+        puts "Error, not sure how we got to this branch"
+      end
+    end
+
+  end
+
+  def generate_count_of_exact_matches_by_color
+  end
+
+  def generate_code_color_count
+  end
+
+  def generate_guess_color_count
   end
 
   def print_grade
