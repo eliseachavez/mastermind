@@ -176,15 +176,13 @@ class Game
   end
 
   def clear_match_count
-    @match_count.each_value do |value|
-      value = 0
-    end
+    @match_count.clear
+    @match_count = {r:0,o:0,y:0,g:0,b:0,p:0}
   end
 
   def clear_code_color_count
-    @code_color_count.each_value do |value|
-      value = 0
-    end
+    @code_color_count.clear
+    @match_count = {r:0,o:0,y:0,g:0,b:0,p:0}
   end
 
   def grade_guess

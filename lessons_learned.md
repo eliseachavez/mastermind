@@ -10,3 +10,8 @@
 ##### Delete Codes From Array
 * For whatever reason, still haven't found out why, #delete doesn't work on the
 * Array of possible codes. Strangely, it will only delete some codes that meet the condition - for unknown reasons. When the same actions are done manually, they work perfectly.
+* When things like this happen, try other methods
+##### Clearing a Hash
+* can't iterate and re-assign a value
+* in general, DON'T mutate an array while iterating
+* use #clear hash class instance method
