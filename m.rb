@@ -223,11 +223,12 @@ class Game
     generate_code_color_count
 
     @guess.each do |color|
+      color = color.to_sym
       if @match_count[color] == @code_color_count[color] # num of exact matches of this color is equal to num of times color found in code
         # we don't need to add a white pin, leave it
       elsif @code_color_count[color] > @match_count[color] # num of times color found in the code is more than num of exact matches, so we need a white pin
         @w_count += 1
-        add_potential_color(color)
+        add_potential_color(color.to_s)
       elsif @match_count[color] > @code_color_count[color] # somehow there are more exact matches of this color than there is a number of that color in the code
         puts "Error, should not be able to have more exact matches than there are numbers of that color in the code"
       else
@@ -341,31 +342,33 @@ class Game
   end
 
   def remove_codes_with_banned_colors
+    puts "\nnumber of codes BEFORE remove_codes_with_banned_colors method: #{@possible_codes.size}"
     determine_banned_colors
     @banned_colors.each do |color|
       @possible_codes.reject! { |code| code.include?(color) }
     end
+    puts "\nnumber of codes AFTER remove_codes_with_banned_colors method: #{@possible_codes.size}"
   end
 
   def remove_codes_with_rejected_positions
+    puts "\nnumber of codes BEFORE remove_codes_with_rejected_positions method: #{@possible_codes.size}"
     if num_white_pins == 4
       generate_banned_positions
       # now remove
-
       @banned_positions.each do |color_char, array_of_positions| # :p, [0,3]
         @possible_codes.each do |code| # ['r','g','b','y']
           @last_guess.each_index do |index| # 0, last guess ['p','y','g','b']
             last_guess_color_char = @last_guess[i] # p
             @possible_codes.reject! { last_guess_color_char == color_char.to_s && indexes_match }
               # if p == :p && [] == 0
-            end
           end
         end
       end
-
-    elsif num_white_pins < 4 && num_white_pins > 0 && num_red_pins == 0
-
+      puts "\nnumber of codes AFTER remove_codes_with_rejected_positions method: #{@possible_codes.size}"
     end
+    #elsif num_white_pins < 4 && num_white_pins > 0 && num_red_pins == 0
+
+    #end
     # p "The size of possible codes before removal is #{@possible_codes.size}\n"
     # last_guess = @turn_data[@num_guesses]
 
@@ -390,7 +393,9 @@ class Game
   end
 
   def remove_code_last_guessed
+    puts "\nnumber of codes BEFORE remove_code_last_guessed method: #{@possible_codes.size}"
     @possible_codes.delete(@turn_data[@num_guesses])
+    puts "\nnumber of codes AFTER remove_codes_with_banned_colors method: #{@possible_codes.size}"
   end
 
   def remove_codes
@@ -450,7 +455,7 @@ class Game
 
   def random_guess
     size = @possible_codes.size - 1
-    random_index = rand(size)
+    random_index = rand(size).to_i
     @guess = @possible_codes[random_index]
     includes_color = false
     if @potential_colors.size > 0
