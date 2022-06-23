@@ -419,8 +419,10 @@ class Game
 
   def remove_code_last_guessed
     puts "\nnumber of codes BEFORE remove_code_last_guessed method: #{@possible_codes.size}"
-    @possible_codes.delete(@turn_data[@num_guesses])
-    puts "\nnumber of codes AFTER remove_codes_with_banned_colors method: #{@possible_codes.size}"
+    pp @turn_data[@num_guesses]
+    puts "That's the value we're trying to delete from @possible_codes"
+    puts @possible_codes.delete(@last_guess)
+    puts "\nnumber of codes AFTER remove_codes_last_guessed method: #{@possible_codes.size}"
   end
 
   def remove_codes
