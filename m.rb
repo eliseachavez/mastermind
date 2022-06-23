@@ -337,8 +337,18 @@ class Game
 
     color1 = CODE_KEY[rand1] # randomly choose an index
     color2 = CODE_KEY[rand2]
+
+    if @banned_colors.include?(color1)
+      first_guess
+    end
+
+    if @banned_colors.include?(color2)
+      first_guess
+    end
+
     2.times { @guess.push(color1) }
     2.times { @guess.push(color2) }
+
   end
 
   def subsequent_guess
