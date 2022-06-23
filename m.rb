@@ -210,7 +210,6 @@ class Game
       if @code[i] == @guess[i]
         @r_count += 1
         increment_match_count(@guess[i])
-        add_potential_color(@guess[i])
       end
     end
   end
@@ -238,13 +237,15 @@ class Game
         # we will decrement it in match count because we've already taken care of the match and we don't need to keep flagging it
         # decrement_match_count(color)
       elsif @code_color_count[color] > @match_count[color] # num of times color found in the code is more than num of exact matches, so we need a white pin
-        if @guess_color_count[color] > @code_color_count[color]
+        if @guess_color_count[color] == @code_color_count[color]
+        @w_count += 1
+        elsif @guess_color_count[color] > @code_color_count[color]
           # subtract, and the difference is the number of white pins
           # but what about exact matches?
           difference = @guess_color_count[color] - @code_color_count[color]
           @w_count += difference
-          @guess_color_count[color.to_sym] = 0
-          add_potential_color(color.to_s)
+          @guess_color_count[color.to_sym] = 0 # only needs to happen bc we're counting ALL the instances of this color here
+          puts "Guess color count should be zero, but it's #{@guess_color_count[color.to_sym]}"
         end
       elsif @match_count[color] > @code_color_count[color] # somehow there are more exact matches of this color than there is a number of that color in the code
         puts "Error, should not be able to have more exact matches than there are numbers of that color in the code"
@@ -343,13 +344,22 @@ class Game
   def subsequent_guess
     remove_codes
 
+    # there are actually 84 possible feedback combos, 83 if you remove the one where you have a perfect match
     if no_pins?
       new_guess_if_no_pins
-    elsif num_red_pins > 0
-      new_guess_if_red_pin
-    elsif num_white_pins > 0
-      new_guess_if_only_white_pins
+    else
+      new_guess_if_pins
     end
+
+  # elsif num_red_pins > 0
+  #     new_guess_if_red_pin
+  #   elsif num_white_pins > 0
+  #     new_guess_if_only_white_pins
+  #   end
+   end
+
+  def new_guess_if_pins
+    first_guess
   end
 
   def no_pins?
@@ -418,11 +428,7 @@ class Game
   end
 
   def remove_code_last_guessed
-    puts "\nnumber of codes BEFORE remove_code_last_guessed method: #{@possible_codes.size}"
-    pp @turn_data[@num_guesses]
-    puts "That's the value we're trying to delete from @possible_codes"
-    puts @possible_codes.delete(@last_guess)
-    puts "\nnumber of codes AFTER remove_codes_last_guessed method: #{@possible_codes.size}"
+    @possible_codes.delete(@last_guess)
   end
 
   def remove_codes
