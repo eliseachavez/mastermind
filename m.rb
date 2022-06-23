@@ -366,11 +366,12 @@ class Game
       @possible_codes_iteration_set = @possible_codes.clone
 
       @possible_codes_iteration_set.each do |code|
-      @guess = code
-      grade_guess
-      temp_pins = pin_report
-      @possible_codes.reject { |num| temp_pins != master_pins }
-      puts "\nnew size of possible codes after algorithm is #{@possible_codes.size}\n"
+        @guess = code
+        grade_guess
+        temp_pins = pin_report
+
+        @possible_codes.reject! { |num| temp_pins != master_pins }
+        puts "\nnew size of possible codes after algorithm is #{@possible_codes.size}\n"
     end
 
     @guess = random_guess #now get a new guess based off our new solution set
