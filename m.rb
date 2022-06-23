@@ -47,6 +47,7 @@ class Game
     @over = false
     @match_count = {r:0,o:0,y:0,g:0,b:0,p:0}
     @code_color_count = {r:0,o:0,y:0,g:0,b:0,p:0}
+    @guess_color_count = {r:0,o:0,y:0,g:0,b:0,p:0}
     @banned_positions = {r:[],o:[],y:[],g:[],b:[],p:[]}
 
     intro_and_setup
@@ -175,6 +176,7 @@ class Game
     @w_count = 0
     clear_match_count
     clear_code_color_count
+    clear_guess_color_count
   end
 
   def clear_match_count
@@ -185,6 +187,11 @@ class Game
   def clear_code_color_count
     @code_color_count.clear
     @code_color_count = {r:0,o:0,y:0,g:0,b:0,p:0}
+  end
+
+  def clear_guess_color_count
+    @guess_color_count.clear
+    @guess_color_count = {r:0,o:0,y:0,g:0,b:0,p:0}
   end
 
   def grade_guess
@@ -221,14 +228,17 @@ class Game
 
   def look_for_colors_at_inexact_position
     generate_code_color_count
+    generate_guess_color_count
 
     @guess.each do |color|
       color = color.to_sym
       if @match_count[color] == @code_color_count[color] # num of exact matches of this color is equal to num of times color found in code
         # we don't need to add a white pin, leave it
       elsif @code_color_count[color] > @match_count[color] # num of times color found in the code is more than num of exact matches, so we need a white pin
-        @w_count += 1
-        add_potential_color(color.to_s)
+        unless @guess_color_count > @code_color_count
+          @w_count += 1
+          add_potential_color(color.to_s)
+        end
       elsif @match_count[color] > @code_color_count[color] # somehow there are more exact matches of this color than there is a number of that color in the code
         puts "Error, should not be able to have more exact matches than there are numbers of that color in the code"
       else
@@ -247,7 +257,6 @@ class Game
   end
 
   def generate_code_color_count
-
     CODE_KEY.each do |color|
       @code.each do |code_color|
         if code_color == color
@@ -255,7 +264,16 @@ class Game
         end
       end
     end
+  end
 
+  def generate_guess_color_count
+    CODE_KEY.each do |color|
+      @guess.each do |guess_color|
+        if guess_color == color
+          @guess_color_count[color.to_sym] += 1
+        end
+      end
+    end
   end
 
   def print_grade
