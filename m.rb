@@ -370,10 +370,11 @@ class Game
       grade_guess
       temp_pins = pin_report
       @possible_codes.reject { |num| temp_pins != master_pins }
+      puts "\nnew size of possible codes after algorithm is #{@possible_codes.size}\n"
     end
 
     @guess = random_guess #now get a new guess based off our new solution set
-
+    puts "\n\nOur new guess based off Knuth's alg is #{@guess}\n\n"
     # reset pins and everything since none of this has involved submitting a real guess
     soft_clear_and_reset_no_archive
   end
@@ -392,7 +393,7 @@ class Game
     pin_arr = []
     pin_arr.push(@r_count)
     pin_arr.push(@w_count)
-    reset pins
+    reset_pins
     pin_arr
   end
 
@@ -532,19 +533,7 @@ class Game
   def random_guess
     size = @possible_codes.size - 1
     random_index = rand(size).to_i
-    @guess = @possible_codes[random_index]
-    includes_color = false
-    if @potential_colors.size > 0
-      @potential_colors.each do |color|
-        if @guess.include?(color)
-          includes_color = true
-        end
-      end
-      if !includes_color
-        random_guess
-      end
-    end
-
+    @possible_codes[random_index]
   end
 
 end # end of class def
