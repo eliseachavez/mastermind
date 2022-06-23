@@ -372,6 +372,8 @@ class Game
       @possible_codes.reject { |num| temp_pins != master_pins }
     end
 
+    @guess = random_guess #now get a new guess based off our new solution set
+
     # reset pins and everything since none of this has involved submitting a real guess
     soft_clear_and_reset_no_archive
   end
