@@ -352,21 +352,52 @@ class Game
   end
 
   def subsequent_guess
-    remove_codes
+    remove_based_off_knuth_alg
+    #remove_codes
 
-    # there are actually 84 possible feedback combos, 83 if you remove the one where you have a perfect match
-    if no_pins?
-      new_guess_if_no_pins
-    else
-      new_guess_if_pins
+    reset_pins
+   end
+
+  def remove_based_off_knuth_alg
+    # Ese last guess as your master code for now. Remove amything that doesn't give the same feedback as last time
+    master_pins = pin_report
+
+    # loop and reject if temp_pins != master_pins
+      @possible_codes_iteration_set = @possible_codes.clone
+
+      @possible_codes_iteration_set.each do |code|
+      @guess = code
+      grade_guess
+      temp_pins = pin_report
+      @possible_codes.reject { |num| temp_pins != master_pins }
     end
 
-  # elsif num_red_pins > 0
-  #     new_guess_if_red_pin
-  #   elsif num_white_pins > 0
-  #     new_guess_if_only_white_pins
-  #   end
-   end
+    # reset pins and everything since none of this has involved submitting a real guess
+    soft_clear_and_reset_no_archive
+  end
+
+  def soft_clear_and_reset_no_archive
+    reset_pins
+    @guess.clear
+    clear_match_count
+    clear_code_color_count
+    clear_guess_color_count
+  end
+
+  def pin_report
+    @w_count = @turn_data[@num_guesses][5]
+    @r_count = @turn_data[@num_guesses][4]
+    pin_arr = []
+    pin_arr.push(@r_count)
+    pin_arr.push(@w_count)
+    reset pins
+    pin_arr
+  end
+
+  def reset_pins
+    @w_count = 0
+    @r_count = 0
+  end
 
   def new_guess_if_pins
     first_guess
