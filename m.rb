@@ -224,9 +224,6 @@ class Game
   end
 
   def add_potential_color(color)
-    # unless @potential_colors.include?(color)
-    #   @potential_colors.push(color)
-    # end
     @potential_colors.push(color)
   end
 
@@ -239,13 +236,13 @@ class Game
       if @match_count[color] == @code_color_count[color] # num of exact matches of this color is equal to num of times color found in code
         # because this would have already gotten a red pin in the look_for_colors_at_exact_position method
         # we will decrement it in match count because we've already taken care of the match and we don't need to keep flagging it
-
+        decrement_match_count(color)
       elsif @code_color_count[color] > @match_count[color] # num of times color found in the code is more than num of exact matches, so we need a white pin
         if @guess_color_count[color] > @code_color_count[color]
           # subtract, and the difference is the number of white pins
           # but what about exact matches?
           difference = @guess_color_count[color] - @code_color_count[color]
-          w_count += difference
+          @w_count += difference
         else
           @w_count += 1
           add_potential_color(color.to_s)
