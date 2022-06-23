@@ -209,14 +209,18 @@ class Game
     @code.each_index do |i|
       if @code[i] == @guess[i]
         @r_count += 1
-        increment_count_of_exact_color_matches(@guess[i])
+        increment_match_count(@guess[i])
         add_potential_color(@guess[i])
       end
     end
   end
 
-  def increment_count_of_exact_color_matches(color)
+  def increment_match_count(color)
     @match_count[color.to_sym] += 1
+  end
+
+  def decrement_match_count(color)
+    @match_count[color.to_sym] -= 1
   end
 
   def add_potential_color(color)
@@ -233,9 +237,16 @@ class Game
     @guess.each do |color|
       color = color.to_sym
       if @match_count[color] == @code_color_count[color] # num of exact matches of this color is equal to num of times color found in code
-        # we don't need to add a white pin, leave it
+        # because this would have already gotten a red pin in the look_for_colors_at_exact_position method
+        # we will decrement it in match count because we've already taken care of the match and we don't need to keep flagging it
+
       elsif @code_color_count[color] > @match_count[color] # num of times color found in the code is more than num of exact matches, so we need a white pin
-        unless @guess_color_count > @code_color_count
+        if @guess_color_count[color] > @code_color_count[color]
+          # subtract, and the difference is the number of white pins
+          # but what about exact matches?
+          difference = @guess_color_count[color] - @code_color_count[color]
+          w_count += difference
+        else
           @w_count += 1
           add_potential_color(color.to_s)
         end
