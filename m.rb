@@ -230,21 +230,20 @@ class Game
   def look_for_colors_at_inexact_position
     generate_code_color_count
     generate_guess_color_count
-
+    # to avoid overocunting, any time a color is counted (for red or white!) need to decrement it in the count
     @guess.each do |color|
       color = color.to_sym
       if @match_count[color] == @code_color_count[color] # num of exact matches of this color is equal to num of times color found in code
         # because this would have already gotten a red pin in the look_for_colors_at_exact_position method
         # we will decrement it in match count because we've already taken care of the match and we don't need to keep flagging it
-        decrement_match_count(color)
+        # decrement_match_count(color)
       elsif @code_color_count[color] > @match_count[color] # num of times color found in the code is more than num of exact matches, so we need a white pin
         if @guess_color_count[color] > @code_color_count[color]
           # subtract, and the difference is the number of white pins
           # but what about exact matches?
           difference = @guess_color_count[color] - @code_color_count[color]
           @w_count += difference
-        else
-          @w_count += 1
+          @guess_color_count[color.to_sym] = 0
           add_potential_color(color.to_s)
         end
       elsif @match_count[color] > @code_color_count[color] # somehow there are more exact matches of this color than there is a number of that color in the code
