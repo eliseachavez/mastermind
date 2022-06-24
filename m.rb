@@ -11,16 +11,14 @@ class Game
     @code = []
     @guess = []
     @last_guess = []
-    @locked_guess = []
     @turn_data = {1=>nil,2=>nil,3=>nil,4=>nil, 5=>nil,6=>nil,7=>nil,8=>nil,9=>nil,10=>nil,11=>nil,12=>nil}
-    @potential_colors = []
-    @banned_colors = []
     @num_guesses = 0
     @r_count = 0
     @w_count = 0
     @turns = 0
     @over = false
-    @banned_positions = {r:[],o:[],y:[],g:[],b:[],p:[]}
+    @code_color_count = {r:0,o:0,y:0,g:0,b:0,p:0}
+    @guess_color_count = {r:0,o:0,y:0,g:0,b:0,p:0}
 
     intro_and_setup
   end
@@ -134,17 +132,17 @@ class Game
     until @over do
       guess = make_a_guess
       grade_guess(@code, guess)
-      archive_and_reset_guess
+      archive_and_reset_guess(guess)
     end
   end
 
-  def archive_and_reset_guess
+  def archive_and_reset_guess(guess)
     @last_guess.clear
-    @last_guess = @guess.clone
-    @guess.push(@r_count)
-    @guess.push(@w_count)
-    @turn_data[@num_guesses] = @guess.clone
-    @guess.clear
+    @last_guess = guess.clone
+    guess.push(@r_count)
+    guess.push(@w_count)
+    @turn_data[@num_guesses] = guess.clone
+    guess.clear
     @r_count = 0
     @w_count = 0
   end
@@ -154,89 +152,79 @@ class Game
       @over = true
       puts "You won!"
     else
-      match_count = generate_count_of_exact_matches_by_color(code, guess, {r:0,o:0,y:0,g:0,b:0,p:0})
-      look_for_colors_at_exact_position(code, guess, match_count)
-      look_for_colors_at_inexact_position(code, guess, match_count)
-      print_grade
+      grade(code, guess)
+      #match_count = generate_count_of_exact_matches_by_color(code, guess, {r:0,o:0,y:0,g:0,b:0,p:0})
+      #look_for_colors_at_exact_position(code, guess, match_count)
+      #look_for_colors_at_inexact_position(code, guess, match_count)
+      #print_grade
     end
   end
 
-  def look_for_colors_at_exact_position(code, guess, match_count)
+  def grade(code, guess)
+    generate_code_color_count
+    generate_guess_color_count
 
+    count_exact_matches(code, guess)
+    count_inexact_matches(code, guess)
+  end
+
+  def count_exact_matches(code, guess)
+    # Count exact matches and give a red pin
+    # Once counted, remove them from color counts so they aren't counted again when counting for white pins
     code.each_index do |i|
       if code[i] == guess[i]
+        decrement_code_color_count(code[i])
+        decrement_guess_color_count(guess[i])
         @r_count += 1
-        increment_match_count(guess[i], match_count)
       end
     end
   end
 
-  def increment_match_count(color, match_count)
-    match_count[color.to_sym] += 1
-  end
+  def count_inexact_matches(code, guess)
+    # Get a diff to see if guess has enough colors to fill the counts for code
+    diff_count = {r:0,o:0,y:0,g:0,b:0,p:0}
 
-  def look_for_colors_at_inexact_position(code, guess, match_count)
-    code_color_count = generate_code_color_count(code)
-    guess_color_count = generate_guess_color_count(guess)
-    match_count = generate_count_of_exact_matches_by_color(code, guess, {r:0,o:0,y:0,g:0,b:0,p:0})
-    # to avoid overocunting, any time a color is counted (for red or white!) need to decrement it in the count
-    guess.each do |color|
+    CODE_KEY.each do |color|
       color = color.to_sym
-      if match_count[color] == code_color_count[color] # num of exact matches of this color is equal to num of times color found in code
-        # because this would have already gotten a red pin in the look_for_colors_at_exact_position method
-        # we will decrement it in match count because we've already taken care of the match and we don't need to keep flagging it
-        # decrement_match_count(color)
-      elsif code_color_count[color] > match_count[color] # num of times color found in the code is more than num of exact matches, so we need a white pin
-        if guess_color_count[color] == code_color_count[color]
-        @w_count += 1
-        elsif guess_color_count[color] > code_color_count[color]
-          # subtract, and the difference is the number of white pins
-          # but what about exact matches?
-          difference = guess_color_count[color] - code_color_count[color]
-          @w_count += difference
-          guess_color_count[color.to_sym] = 0 # only needs to happen bc we're counting ALL the instances of this color here
-          puts "Guess color count should be zero, but it's #{guess_color_count[color.to_sym]}"
+      if @guess_color_count[color] > 0
+        @code_color_count[color].times do
+          # For as many of this color that the code has, count a white pin that guess color has available
+          if @guess_color_count[color] >= 1
+            @w_count += 1
+            decrement_guess_color_count
+          end
         end
-      elsif match_count[color] > code_color_count[color] # somehow there are more exact matches of this color than there is a number of that color in the code
-        puts "Error, should not be able to have more exact matches than there are numbers of that color in the code"
-      else
-        puts "Error, not sure how we got to this branch"
       end
-    end
-
   end
 
-  def generate_count_of_exact_matches_by_color(code, guess, match_count)
-    code.each_index do |i|
-      if guess[i] == code[i]
-        match_count[code[i].to_sym] += 1
-      end
-    end
-    match_count
+  def decrement_code_color_count(code[i])
+    color_key = code[i].to_sym
+    @code_color_count[color_key] -= 1
+  end
+
+  def decrement_guess_color_count(guess[i])
+    color_key = guess[i].to_sym
+    @guesse_color_count[color_key] -= 1
   end
 
   def generate_code_color_count(code)
-    code_color_count = {r:0,o:0,y:0,g:0,b:0,p:0}
     CODE_KEY.each do |color|
       code.each do |code_color|
         if code_color == color
-          code_color_count[color.to_sym] += 1
+          @code_color_count[color.to_sym] += 1
         end
       end
     end
-    code_color_count
   end
 
   def generate_guess_color_count(guess)
-    guess_color_count = {r:0,o:0,y:0,g:0,b:0,p:0}
     CODE_KEY.each do |color|
       guess.each do |guess_color|
         if guess_color == color
-          guess_color_count[color.to_sym] += 1
+          @guess_color_count[color.to_sym] += 1
         end
       end
     end
-    guess_color_count
   end
 
   def print_grade
@@ -280,7 +268,7 @@ class Game
     else
       guess = subsequent_guess
     end
-    guess
+    @guess = guess
   end
 
   def first_guess
@@ -307,6 +295,7 @@ class Game
     guess = choose_by_knuth_alg
     #remove_codes
     reset_pins
+    @guess = guess
     guess
    end
 
@@ -315,31 +304,33 @@ class Game
     master_pins = pin_report_for_master
 
     # loop and reject if temp_pins != master_pins
-      @possible_codes_iteration_set = @possible_codes.clone
+      new_solution_set = []
 
-      @possible_codes_iteration_set.each do |code|
-        guess = code
-        grade_guess(code, guess)
+      @possible_codes.each do |code|
+        guess = @last_guess
+        grade_guess(guess, code)
         temp_pins = pin_report_for_temp_code
-        if temp_pins != master_pins
-          @possible_codes.delete(code)
+
+        if temp_pins == master_pins
+          new_solution_set.push(code)
         end
-        #@possible_codes.reject! { |num| temp_pins != master_pins }
-        guess
+        puts "Number of possible codes is #{new_solution_set.size}"
     end
 
+    clear_and_replace_solution_set(new_solution_set)
     puts "\nnew size of possible codes after algorithm is #{@possible_codes.size}\n"
 
     guess = random_guess #now get a new guess based off our new solution set
-    puts "\n\nOur new guess based off Knuth's alg is #{@guess}\n\n"
+    puts "set is #{@possible_codes}"
+    puts "\n\nOur new guess based off Knuth's alg is #{guess}\n\n"
     # reset pins and everything since none of this has involved submitting a real guess
-    soft_clear_and_reset_no_archive
+    reset_pins
     guess
   end
 
-  def soft_clear_and_reset_no_archive
-    reset_pins
-    #@guess.clear
+  def clear_and_replace_solution_set(new_solution_set)
+    @possible_codes.clear
+    @possible_codes = new_solution_set.clone
   end
 
   def pin_report_for_master
@@ -365,117 +356,12 @@ class Game
     @r_count = 0
   end
 
-  def new_guess_if_pins
-    first_guess
-  end
-
-  def no_pins?
-    num_red_pins == 0 && num_white_pins == 0
-  end
-
-  def num_red_pins
-    last_guess = @turn_data[@num_guesses]
-    last_guess[4]
-  end
-
-  def num_white_pins
-    last_guess = @turn_data[@num_guesses]
-    last_guess[5]
-  end
-
-  def remove_codes_with_banned_colors
-    puts "\nnumber of codes BEFORE remove_codes_with_banned_colors method: #{@possible_codes.size}"
-    determine_banned_colors
-    @banned_colors.each do |color|
-      @possible_codes.reject! { |code| code.include?(color) }
-    end
-    puts "\nnumber of codes AFTER remove_codes_with_banned_colors method: #{@possible_codes.size}"
-  end
-
-  def remove_codes_with_rejected_positions
-    puts "\nnumber of codes BEFORE remove_codes_with_rejected_positions method: #{@possible_codes.size}"
-    if num_white_pins == 4
-      generate_banned_positions
-      # now remove
-      @banned_positions.each do |color_char, array_of_positions| # :p, [0,3]
-        @possible_codes.each do |code| # ['r','g','b','y']
-          @last_guess.each_index do |index| # 0, last guess ['p','y','g','b']
-            last_guess_color_char = @last_guess[i] # p
-            @possible_codes.reject! { last_guess_color_char == color_char.to_s && indexes_match }
-              # if p == :p && [] == 0
-          end
-        end
-      end
-      puts "\nnumber of codes AFTER remove_codes_with_rejected_positions method: #{@possible_codes.size}"
-    end
-    #elsif num_white_pins < 4 && num_white_pins > 0 && num_red_pins == 0
-
-    #end
-    # p "The size of possible codes before removal is #{@possible_codes.size}\n"
-    # last_guess = @turn_data[@num_guesses]
-
-    # last_guess.each_index do |index|
-    #   color_at_position = last_guess[index] # 'r y o p, color_at position is 'r' if index is 0, where position is index, 0-4
-    #   @possible_codes.each do |code|
-    #     @possible_codes.reject! { |code| code[index] == color_at_position}
-    #   end
-    # end
-    # p "The size of possible codes now is #{@possible_codes.size}\n"
-  end
-
-  def generate_banned_positions
-    @last_guess.each_index do |index|
-      color_char = @last_guess[index]
-      @banned_positions[color_char.to_sym].push(index)
-    end
-  end
-
-  def indexes_match(array_of_positions,index_of_guess_code)
-    array_of_positions.any?(index_of_guess_code)
-  end
-
   def remove_code_last_guessed
     @possible_codes.delete(@last_guess)
   end
 
   def remove_codes
     remove_code_last_guessed
-  end
-
-  def new_guess_if_no_pins
-    # remove any banned colors (already happened
-    random_guess
-  end
-
-  def new_guess_if_red_pin
-    # grab code that has highest number of colors that are locked colors
-    @possible_codes.each_index do |index|
-      code = @possible_codes[index]
-      match_count = 0
-      @potential_colors.each do |color|
-        if code.include?(color)
-          match_count += 1
-        end
-      end
-
-      if match_count == 4
-        guess = code
-      elsif match_count == 3
-        guess = code
-      elsif match_count == 2
-        guess = code
-      else
-        @guess = code
-      end
-
-    end
-
-  end
-
-  def new_guess_if_only_white_pins
-    # nothing is in right position. need to rearrange
-    random_guess
-    # remove anything that has similar positions
   end
 
   def random_guess

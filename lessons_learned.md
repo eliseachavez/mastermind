@@ -27,4 +27,17 @@ If you really have to and have no other choice iterate the array backwards from 
 * in general, DON'T mutate an array while iterating
 * use #clear hash class instance method
 
+##### Knuth's Algorithm
+
+STEP 1, make a guess using combo [1,1,2,2] and store the feedback/hint
+
+STEP 2, (in that same guess method) immediately iterate through the set of combos and for each one, make it the "temporary" secret code and test [1,1,2,2] (our initial guess) against it.
+
+STEP 3, In this iteration, any combo (acting as a secret code) that doesn't return the same hint as the actual secret code will be deleted from the set.
+This is because if they were a likely secret code, they would've produced what the actual secret code produced for guess [1,1,2,2] in step 1.
+
+STEP 4, now the guess method is done. It terminates.
+
+So for the next guess, randomly pick a guess from your now reduced set of combos, make a guess using it, store the feedback, and repeat the whole process again from step 2.
+
 
