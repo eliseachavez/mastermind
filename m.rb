@@ -175,7 +175,7 @@ class Game
     match_count[color.to_sym] += 1
   end
 
-  def look_for_colors_at_inexact_position(code, guess)
+  def look_for_colors_at_inexact_position(code, guess, match_count)
     code_color_count = generate_code_color_count(code)
     guess_color_count = generate_guess_color_count(guess)
     match_count = generate_count_of_exact_matches_by_color(code, guess, {r:0,o:0,y:0,g:0,b:0,p:0})
@@ -284,6 +284,8 @@ class Game
   end
 
   def first_guess
+    guess = []
+
     rand1 = 0
     rand2 = 0
 
@@ -438,21 +440,6 @@ class Game
 
   def remove_codes
     remove_code_last_guessed
-    remove_codes_with_banned_colors
-    remove_codes_with_rejected_positions
-  end
-
-  def determine_banned_color_positions
-  end
-
-  def determine_banned_colors
-    if no_pins?
-      @last_guess.each do |color|
-        unless @banned_colors.include?(color)
-          @banned_colors.push(color)
-        end
-      end
-    end
   end
 
   def new_guess_if_no_pins
