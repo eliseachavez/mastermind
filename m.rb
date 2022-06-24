@@ -8,6 +8,7 @@ class Game
     @possible_codes = generate_all_possible_codes
     @codemaker = ''
     @codebreaker = ''
+    @original_code = []
     @code = []
     @guess = []
     @last_guess = []
@@ -62,7 +63,8 @@ class Game
     # pick a code from @all_possible_codes at random
     # there are 1296 codes, so we may 1296-1 or 1295 the max number
     random_index = rand(1295)
-    @possible_codes[random_index]
+    @original_code = @possible_codes[random_index]
+    @code = @possible_codes[random_index]
   end
 
   def choose_printout
@@ -130,59 +132,87 @@ class Game
   def play
     choose
     until @over do
-      guess = make_a_guess
-      grade_guess(@code, guess)
-      archive_and_reset_guess(guess)
+      make_a_guess
+      # since Knuth's algorithm is run in make_a_guess and changes a temp guess to master code
+      # and a new code as the new guess
+      # we need to set guess to equal what is now code
+      # and code needs to be original
+      revert_original_code
+      grade_guess
+      archive_and_reset_guess
     end
   end
 
-  def archive_and_reset_guess(guess)
+  def revert_original_code
+    # right now Knuth's alg code is @code
+    # we need it to become @guess
+    # @code needs to go back to being @original_code
+    temp = []
+    temp = @code.clone
+    @guess.clear
+    @guess = temp.clone
+
+    @code.clear
+    @code = @original_code.clone
+  end
+
+  def archive_and_reset_guess
     @last_guess.clear
     @last_guess = guess.clone
-    guess.push(@r_count)
-    guess.push(@w_count)
-    @turn_data[@num_guesses] = guess.clone
-    guess.clear
+    @guess.push(@r_count)
+    @guess.push(@w_count)
+    @turn_data[@num_guesses] = @guess.clone
+    @guess.clear
     @r_count = 0
     @w_count = 0
   end
 
-  def grade_guess(code, guess)
-    if guess == code
+  def clear_code_color_count
+    @code_color_count.clear
+    @code_color_count = {r:0,o:0,y:0,g:0,b:0,p:0}
+  end
+
+  def clear_guess_color_count
+    @guess_color_count.clear
+    @guess_color_count = {r:0,o:0,y:0,g:0,b:0,p:0}
+  end
+
+  def grade_guess
+    if @guess == @code
       @over = true
       puts "You won!"
     else
-      grade(code, guess)
-      #match_count = generate_count_of_exact_matches_by_color(code, guess, {r:0,o:0,y:0,g:0,b:0,p:0})
-      #look_for_colors_at_exact_position(code, guess, match_count)
-      #look_for_colors_at_inexact_position(code, guess, match_count)
-      #print_grade
+      grade
     end
   end
 
-  def grade(code, guess)
+  def grade
+    # Clear them from before.
+    # Don't do in final clear method because that doesn't get touched when doing knuth's
+    reset_pins
+    clear_code_color_count
+    clear_guess_color_count
     generate_code_color_count
     generate_guess_color_count
 
-    count_exact_matches(code, guess)
-    count_inexact_matches(code, guess)
+    count_exact_matches
+    count_inexact_matches
   end
 
-  def count_exact_matches(code, guess)
+  def count_exact_matches
     # Count exact matches and give a red pin
     # Once counted, remove them from color counts so they aren't counted again when counting for white pins
-    code.each_index do |i|
-      if code[i] == guess[i]
-        decrement_code_color_count(code[i])
-        decrement_guess_color_count(guess[i])
+    @code.each_index do |i|
+      if @code[i] == @guess[i]
+        decrement_code_color_count(@code[i])
+        decrement_guess_color_count(@guess[i])
         @r_count += 1
       end
     end
   end
 
-  def count_inexact_matches(code, guess)
+  def count_inexact_matches
     # Get a diff to see if guess has enough colors to fill the counts for code
-    diff_count = {r:0,o:0,y:0,g:0,b:0,p:0}
 
     CODE_KEY.each do |color|
       color = color.to_sym
@@ -191,25 +221,26 @@ class Game
           # For as many of this color that the code has, count a white pin that guess color has available
           if @guess_color_count[color] >= 1
             @w_count += 1
-            decrement_guess_color_count
+            decrement_guess_color_count(color)
           end
         end
       end
+    end
   end
 
-  def decrement_code_color_count(code[i])
-    color_key = code[i].to_sym
+  def decrement_code_color_count(code)
+    color_key = code.to_sym
     @code_color_count[color_key] -= 1
   end
 
-  def decrement_guess_color_count(guess[i])
-    color_key = guess[i].to_sym
-    @guesse_color_count[color_key] -= 1
+  def decrement_guess_color_count(guess)
+    color_key = guess.to_sym
+    @guess_color_count[color_key] -= 1
   end
 
-  def generate_code_color_count(code)
+  def generate_code_color_count
     CODE_KEY.each do |color|
-      code.each do |code_color|
+      @code.each do |code_color|
         if code_color == color
           @code_color_count[color.to_sym] += 1
         end
@@ -217,9 +248,9 @@ class Game
     end
   end
 
-  def generate_guess_color_count(guess)
+  def generate_guess_color_count
     CODE_KEY.each do |color|
-      guess.each do |guess_color|
+      @guess.each do |guess_color|
         if guess_color == color
           @guess_color_count[color.to_sym] += 1
         end
@@ -238,42 +269,38 @@ class Game
 
   def choose
     if @codemaker == 'computer'
-      @code = generate_code
+      generate_code
     else
-      @code = choose_code
+      choose_code
     end
   end
 
   def make_a_guess
     # Make guesses until
     if @codebreaker == "computer"
-      guess = computer_guess
+      computer_guess
     else
-      guess = player_guess
+      player_guess
     end
     puts "\n#{@codebreaker}'s guess is #{guess}\n"
     @num_guesses += 1
-    guess
   end
 
   def player_guess
     puts "\n\nThe computer has created a code and it is time for you to guess.\n"
-    guess = choose_guess
+    choose_guess
   end
 
   def computer_guess
     # FIRST GUESS: pick 2 colors randomly and use the 1122 template
     if @num_guesses == 0
-      guess = first_guess
+      first_guess
     else
-      guess = subsequent_guess
+      subsequent_guess
     end
-    @guess = guess
   end
 
   def first_guess
-    guess = []
-
     rand1 = 0
     rand2 = 0
 
@@ -285,19 +312,15 @@ class Game
     color1 = CODE_KEY[rand1]
     color2 = CODE_KEY[rand2]
 
-    2.times { guess.push(color1) }
-    2.times { guess.push(color2) }
-
-    guess
+    2.times { @guess.push(color1) }
+    2.times { @guess.push(color2) }
   end
 
   def subsequent_guess
-    guess = choose_by_knuth_alg
-    #remove_codes
+    choose_by_knuth_alg
     reset_pins
-    @guess = guess
     guess
-   end
+  end
 
   def choose_by_knuth_alg
     # Ese last guess as your master code for now. Remove amything that doesn't give the same feedback as last time
@@ -306,9 +329,17 @@ class Game
     # loop and reject if temp_pins != master_pins
       new_solution_set = []
 
+      # make our @last_guess our new @code
+      # and the iteration variable code is our new @guess
+      @code.clear
+      @code = @last_guess.clone
+
       @possible_codes.each do |code|
-        guess = @last_guess
-        grade_guess(guess, code)
+
+        @guess.clear
+        @guess = code
+
+        grade_guess
         temp_pins = pin_report_for_temp_code
 
         if temp_pins == master_pins
@@ -320,12 +351,11 @@ class Game
     clear_and_replace_solution_set(new_solution_set)
     puts "\nnew size of possible codes after algorithm is #{@possible_codes.size}\n"
 
-    guess = random_guess #now get a new guess based off our new solution set
+    random_guess #now get a new guess based off our new solution set
     puts "set is #{@possible_codes}"
-    puts "\n\nOur new guess based off Knuth's alg is #{guess}\n\n"
+    puts "\n\nOur new guess based off Knuth's alg is #{@guess}\n\n"
     # reset pins and everything since none of this has involved submitting a real guess
     reset_pins
-    guess
   end
 
   def clear_and_replace_solution_set(new_solution_set)
@@ -367,7 +397,8 @@ class Game
   def random_guess
     size = @possible_codes.size - 1
     random_index = rand(size).to_i
-    @possible_codes[random_index]
+    @guess.clear
+    @guess = @possible_codes[random_index]
   end
 
 end # end of class def
