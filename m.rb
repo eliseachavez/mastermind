@@ -6,6 +6,7 @@ class Game
 
   def initialize
     @possible_codes = generate_all_possible_codes
+    @possible_code_iteration_set = @possible_codes.clone
     @codemaker = ''
     @codebreaker = ''
     @original_code = []
@@ -98,7 +99,7 @@ class Game
         end
       end
     end
-    @code
+    @original_code = @code.clone
   end
 
   def choose_guess
@@ -137,7 +138,9 @@ class Game
       # and a new code as the new guess
       # we need to set guess to equal what is now code
       # and code needs to be original
-      revert_original_code
+      if @num_guesses == 0
+        revert_original_code
+      end
       grade_guess
       archive_and_reset_guess
     end
@@ -158,7 +161,7 @@ class Game
 
   def archive_and_reset_guess
     @last_guess.clear
-    @last_guess = guess.clone
+    @last_guess = @guess.clone
     @guess.push(@r_count)
     @guess.push(@w_count)
     @turn_data[@num_guesses] = @guess.clone
@@ -228,13 +231,13 @@ class Game
     end
   end
 
-  def decrement_code_color_count(code)
-    color_key = code.to_sym
+  def decrement_code_color_count(color)
+    color_key = color.to_sym
     @code_color_count[color_key] -= 1
   end
 
-  def decrement_guess_color_count(guess)
-    color_key = guess.to_sym
+  def decrement_guess_color_count(color)
+    color_key = color.to_sym
     @guess_color_count[color_key] -= 1
   end
 
@@ -282,7 +285,7 @@ class Game
     else
       player_guess
     end
-    puts "\n#{@codebreaker}'s guess is #{guess}\n"
+    puts "\n#{@codebreaker}'s guess is #{@guess}\n"
     @num_guesses += 1
   end
 
@@ -323,32 +326,34 @@ class Game
   end
 
   def choose_by_knuth_alg
-    # Ese last guess as your master code for now. Remove amything that doesn't give the same feedback as last time
+    # Use last guess as your master code for now. Remove amything that doesn't give the same feedback as last time
     master_pins = pin_report_for_master
 
+    @possible_code_iteration_set.clear
+    @possible_code_iteration_set = @possible_codes.clone
     # loop and reject if temp_pins != master_pins
-      new_solution_set = []
+    @possible_code_iteration_set.each do |code|
 
       # make our @last_guess our new @code
       # and the iteration variable code is our new @guess
       @code.clear
       @code = @last_guess.clone
 
-      @possible_codes.each do |code|
+      @guess.clear
+      @guess = code
 
-        @guess.clear
-        @guess = code
+      grade_guess
+      temp_pins = pin_report_for_temp_code
 
-        grade_guess
-        temp_pins = pin_report_for_temp_code
-
-        if temp_pins == master_pins
-          new_solution_set.push(code)
-        end
-        puts "Number of possible codes is #{new_solution_set.size}"
+      if temp_pins == master_pins # if this evaluates to true, #select will filter it
+        @possible_codes.reject! { |sub_code| code != sub_code }
+      end
+      puts "new size of possible_codes is #{@possible_codes}"
     end
 
-    clear_and_replace_solution_set(new_solution_set)
+    @possible_codes.clear
+    @possible_codes = new_solution_set.clone
+    new_solution_set.clear
     puts "\nnew size of possible codes after algorithm is #{@possible_codes.size}\n"
 
     random_guess #now get a new guess based off our new solution set
@@ -356,11 +361,6 @@ class Game
     puts "\n\nOur new guess based off Knuth's alg is #{@guess}\n\n"
     # reset pins and everything since none of this has involved submitting a real guess
     reset_pins
-  end
-
-  def clear_and_replace_solution_set(new_solution_set)
-    @possible_codes.clear
-    @possible_codes = new_solution_set.clone
   end
 
   def pin_report_for_master
